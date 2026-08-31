@@ -4,83 +4,115 @@
 
 A hands-on SOC investigation conducted in a controlled Windows 11 laboratory environment.
 
-The investigation focused on:
-
-- Windows authentication failures
-- Successful authentication correlation
-- Windows Security Event IDs 4625 and 4624
-- Sysmon Event ID 1
-- Logon ID correlation
-- Parent-child process analysis
-- System discovery activity
-- Evidence-based incident assessment
+The investigation examined a sequence of failed and successful authentication events and correlated Windows Security telemetry with Sysmon process-creation data.
 
 ## Scenario
 
 Four failed authentication attempts against the `LabUser` account were recorded at:
 
-31/08/2026 01:36:18
+**31/08/2026 01:36:18**
 
-A successful interactive authentication occurred 13 seconds later at:
+A successful interactive authentication occurred 13 seconds later:
 
-31/08/2026 01:36:31
+**31/08/2026 01:36:31**
 
-The authentication originated locally from the host using the IPv6 loopback address `::1`.
+The authentication originated from the local host using the IPv6 loopback address `::1`.
 
 ## Investigation
 
-Security Event ID 4625 identified:
+### Failed Authentication — Event ID 4625
 
-- Target account: `LabUser`
-- Logon Type: `2`
-- Failure reason: Unknown user name or bad password
-- Status: `0xC000006D`
-- Sub-status: `0xC000006A`
-- Source: `::1`
+The failed authentication event identified:
 
-The subsequent Event ID 4624 recorded a successful authentication for:
+- **Target account:** `LabUser`
+- **Account domain:** `SOCAnalyst`
+- **Subject account:** `SOCAnalyst2`
+- **Logon Type:** `2 — Interactive`
+- **Failure reason:** Unknown user name or bad password
+- **Status:** `0xC000006D`
+- **Sub-status:** `0xC000006A`
+- **Source:** `::1`
+- **Authentication Package:** `Negotiate`
+- **Logon Process:** `seclogo`
+
+### Successful Authentication — Event ID 4624
+
+A successful authentication for `LabUser` occurred 13 seconds later.
+
+Key evidence:
+
+- **Account:** `SOCAnalyst\LabUser`
+- **Logon Type:** `2 — Interactive`
+- **Logon ID:** `0x1AA763`
+- **Workstation:** `SOCANALYST`
+- **Source:** `::1`
+- **Authentication Package:** `Negotiate`
+- **Logon Process:** `seclogo`
+
+## Endpoint Correlation
+
+Sysmon Event ID 1 recorded creation of:
+
+`C:\Windows\System32\cmd.exe`
+
+The process ran as:
 
 `SOCAnalyst\LabUser`
 
-with Logon ID:
+The process contained the same Logon ID:
 
 `0x1AA763`
 
-Sysmon Event ID 1 subsequently recorded `cmd.exe` running as:
+This provided a direct correlation between the successful authentication and the subsequent `cmd.exe` process.
 
-`SOCAnalyst\LabUser`
+The parent process was:
 
-with the same Logon ID, providing a correlation between the authentication event and process execution.
+`C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe`
 
-## Endpoint Activity
+running under:
 
-Further investigation identified the following system discovery commands in a separate LabUser session:
+`SOCAnalyst\SOCAnalyst2`
+
+## System Discovery Activity
+
+A separate LabUser session was subsequently used to execute:
 
 - `whoami`
 - `hostname`
 - `ipconfig`
 
-These commands are dual-use and can be used for legitimate administration as well as reconnaissance.
+These commands are commonly used for system and network discovery.
 
-## Assessment
+The observed processes were associated with Logon ID:
 
-The authentication sequence initially warranted investigation because multiple failed logons were followed shortly by a successful authentication.
+`0x649075`
 
-However, the activity originated locally and the subsequent discovery commands do not, by themselves, establish malicious activity.
+This differs from the original successful authentication Logon ID of `0x1AA763`.
 
-Given the controlled laboratory context and the absence of additional evidence indicating persistence, privilege escalation, credential access, or malicious network activity, the final assessment was:
+Therefore, the discovery activity is documented as a **separate LabUser session** rather than being incorrectly attributed to the original authentication session.
 
-**Benign / Controlled Lab Activity**
+## Process Relationship
 
-## Skills Demonstrated
+```text
+SOCAnalyst2
+    |
+    └── PowerShell (PID 8468)
+            |
+            └── cmd.exe (PID 8220)
+                    |
+                    └── conhost.exe (PID 8420)
 
-- Windows Event Log analysis
-- PowerShell
-- Sysmon
-- Authentication analysis
-- Logon ID correlation
-- Process-tree analysis
-- Timeline reconstruction
-- System discovery analysis
-- Evidence-based incident classification
-- SOC investigation documentation
+Logon ID: 0x1AA763
+User: SOCAnalyst\LabUser
+
+
+Separate discovery session:
+
+LabUser
+    |
+    └── cmd.exe (PID 352)
+            ├── whoami.exe (PID 2247)
+            ├── hostname.exe (PID 1708)
+            └── ipconfig.exe (PID 4132)
+
+Logon ID: 0x649075
