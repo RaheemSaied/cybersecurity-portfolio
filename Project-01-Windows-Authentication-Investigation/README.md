@@ -93,26 +93,92 @@ Therefore, the discovery activity is documented as a **separate LabUser session*
 
 ## Process Relationship
 
-```text
-SOCAnalyst2
-    |
-    └── PowerShell (PID 8468)
-            |
-            └── cmd.exe (PID 8220)
-                    |
-                    └── conhost.exe (PID 8420)
+    SOCAnalyst2
+        |
+        └── PowerShell (PID 8468)
+                |
+                └── cmd.exe (PID 8220)
+                        |
+                        └── conhost.exe (PID 8420)
 
-Logon ID: 0x1AA763
-User: SOCAnalyst\LabUser
+    Logon ID: 0x1AA763
+    User: SOCAnalyst\LabUser
 
+    Separate discovery session:
 
-Separate discovery session:
+    LabUser
+        |
+        └── cmd.exe (PID 352)
+                ├── whoami.exe (PID 2247)
+                ├── hostname.exe (PID 1708)
+                └── ipconfig.exe (PID 4132)
 
-LabUser
-    |
-    └── cmd.exe (PID 352)
-            ├── whoami.exe (PID 2247)
-            ├── hostname.exe (PID 1708)
-            └── ipconfig.exe (PID 4132)
+    Logon ID: 0x649075
 
-Logon ID: 0x649075
+## Analyst Assessment
+
+The initial authentication pattern warranted investigation because four failed authentication attempts against `LabUser` were followed by a successful authentication 13 seconds later.
+
+The local source address `::1` is reassuring in the laboratory context, but local origin alone does not rule out malicious activity.
+
+The successful authentication was strongly correlated with `cmd.exe` through the shared Logon ID `0x1AA763`.
+
+The subsequent `whoami`, `hostname` and `ipconfig` commands are dual-use. They can be used for legitimate administration as well as early-stage reconnaissance.
+
+Based on the controlled laboratory context and the absence of additional evidence indicating persistence, privilege escalation, credential access or malicious network activity, the final assessment was:
+
+**Benign / Controlled Lab Activity**
+
+## MITRE ATT&CK Mapping
+
+| Technique | Name | Lab Activity |
+|---|---|---|
+| T1059.001 | PowerShell | PowerShell used in the controlled process workflow |
+| T1059.003 | Windows Command Shell | `cmd.exe` used to execute commands |
+| T1033 | System Owner/User Discovery | `whoami` |
+| T1082 | System Information Discovery | `hostname` |
+| T1016 | System Network Configuration Discovery | `ipconfig` |
+
+These mappings describe behaviours represented in the laboratory exercise and do not by themselves indicate malicious activity.
+
+## Skills Demonstrated
+
+- Windows Event Log Analysis
+- Authentication Analysis
+- Security Event ID 4624 / 4625
+- Sysmon Event ID 1
+- Logon ID Correlation
+- PowerShell
+- Process Analysis
+- Parent-Child Process Analysis
+- Timeline Reconstruction
+- System Discovery Analysis
+- MITRE ATT&CK
+- SOC Documentation
+- Evidence-Based Incident Assessment
+
+## Evidence
+
+### Authentication Evidence
+
+![Event 4625 — Failed Authentication](./screenshots/01-event-4625-failed-authentication.png)
+
+*Event ID 4625 showing the failed authentication against LabUser.*
+
+![Event 4624 — Successful Authentication](./screenshots/02-event-4624-successful-authentication.png)
+
+*Event ID 4624 showing successful authentication of LabUser and Logon ID 0x1AA763.*
+
+### Endpoint Evidence
+
+![Sysmon — cmd.exe](./screenshots/03-sysmon-cmd-logon-correlation.png)
+
+*Sysmon Event ID 1 showing cmd.exe running as LabUser with LogonId 0x1AA763.*
+
+![Supporting Process Evidence](./screenshots/04-additional-evidence.png)
+
+*Supporting Sysmon process evidence from the investigation.*
+
+## Project Documentation
+
+[View the full investigation report](./Project_1_Windows_Authentication_Endpoint_Investigation_FINAL.pdf)
