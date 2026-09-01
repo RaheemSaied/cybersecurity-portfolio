@@ -35,7 +35,7 @@ The project emphasizes evidence correlation and distinguishes confirmed telemetr
 **Endpoint:** SOC-Lab-Win11 / SOCANALYST  
 **Primary lab user:** `SOCAnalyst2`  
 **Sysmon service:** `Sysmon`  
-**Task:** `SOC-Lab-Discovery-Test`
+**Scheduled task:** `SOC-Lab-Discovery-Test`
 
 ### Scheduled Task Configuration
 
