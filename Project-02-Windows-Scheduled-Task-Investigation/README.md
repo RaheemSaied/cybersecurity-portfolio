@@ -211,6 +211,7 @@ The configured `whoami.exe` action is a system/user discovery command, but becau
 
 ![Scheduled task created](./screenshots/03-scheduled-task-created.png)
 
+
 ### 4. Scheduled Task Action
 
 ![Scheduled task action](./screenshots/04-scheduled-task-action.png)
