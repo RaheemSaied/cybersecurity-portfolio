@@ -201,7 +201,7 @@ The configured `whoami.exe` action is a system/user discovery command, but becau
 
 ### 1. Sysmon Service Running
 
-![Sysmon service running](./screenshots/01-sysmon-service-running.png)
+![Sysmon service running](./screenshots/01-sysmon-environment-check.png)
 
 ### 2. Task Scheduler Auditing Enabled
 
