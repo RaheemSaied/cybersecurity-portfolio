@@ -134,7 +134,7 @@ The activity was assessed as **Benign / Controlled Lab Activity — Low Suspicio
 
 Native Windows TCP telemetry exposed active network connections and associated process IDs. Sysmon Event ID 3 was not available on the endpoint despite a configured `NetworkConnect` filter, creating an important telemetry gap.
 
-The investigation therefore used available Windows and Sysmon process telemetry to attribute network activity while avoiding unsupported conclusions about the origin of individual connections.
+The investigation therefore used available Windows and Sysmon process telemetry to correlate network activity with available endpoint telemetry while avoiding unsupported conclusions about the origin of individual connections.
 
 ### SOC lesson
 
